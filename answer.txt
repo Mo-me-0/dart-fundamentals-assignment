@@ -1,0 +1,43 @@
+Name:- Mussie Workneh
+ID:- ATE/9096/15
+Conceptual Questions
+Q1. What is the difference between a List<int> and a List<dynamic> in Dart? Why is it usually better to use a typed list like List<int>?
+
+Answer: List<int> must have elements with a data type of integer only, where as List<dynamic> elements can be any data type so they are not restricted to a specific data type. List<int> is better because they optimize code better since it reduces type checking and memory efficient.
+
+Q2. In your findMax() function, why is it important to initialize your 'running maximum' variable to the first element of the list rather than to 0 or to a very small number? What could go wrong with the other approaches?
+
+Answer: if we initialize our running maximum as 0 and elements of the list are all negative like [-2, -5, -20], the maximum value will be 0. Which in this case is not an element of the list. For this reason it is better to initialize our running maximum as the first element of the list, so that the computed results won't be out of the range of the elements in the list. 
+
+Q3. Your calculateAverage() function calls calculateSum() internally. What software design principle does this demonstrate, and why is reusing existing functions preferable to duplicating code?
+
+Answer: The software design principle it demonstrate is modularization. It is preferable because it makes our program easily maintainable.
+
+Q4. Describe in plain English what the for-in loop syntax does in Dart. How is it different from a traditional for loop with an index? When would you prefer one over the other?
+
+Answer: for-in loop iterates through the list by referring the values directly instead of the index. In plain English, It means for each value in the list. for-in loop is preferred if we need to access all the values and directly, also when there is no index like in a set. However, if we want to switch, modify, or need a section(part) of the list using traditional for loop with index is preferable.
+
+Q5. If someone calls your findMax() function with an empty list, what happens? How could you modify the function to handle that case safely?
+
+Answer: currently I have implemented null safety check at the top of findMax() which checks if the list is empty or not, then prevents to perform the for loop by returning 0 when it's empty, otherwise it performs the continuing operations fully.
+
+
+Q6. What is the difference between a synchronous function and an asynchronous function in Dart? In your Calculator class, why is divide() synchronous while computeAsync() is asynchronous?
+
+Answer: A synchronous function is a function that is executed step by step without waiting for long-running tasks to finish. In other hand, asynchronous function allows the function to start and finish long-running tasks without interrupting the process and keeping the function running. In my code divide() is synchronous because it is a simple operation that executes instantly but computeAsync() is asynchronous because it simulates a network request that has delays to get the required result.
+
+Q7. Explain the purpose of the await keyword in Dart. What happens if you forget to use await when calling an async function that returns a Future? What does your program print instead of the result?
+
+Answer: The purpose of await is when running the code the program will wait till that specific process is finished before continuing to the next line/block of code. If we forgot to use await then the function will return a Future instance and keeps performing the process to get the final value of the Future variable, even though it is skipped(the program doesn't wait till it finish). The program prints: Instance of 'Future<double>'.
+
+Q8. What is the purpose of the try-catch block in your displayResult() method? What would happen if you removed it and then called displayResult(10, 0, 'divide')?
+
+Answer: The purpose of try-catch is to safely manage and properly display errors. If we remove try-catch, the code will crash when it gets to displayResult(10, 0, 'divide').
+
+Q9. Why is it good design to have divide() throw an ArgumentError rather than simply returning 0 or printing an error inside the divide() method itself? What principle of function design does this reflect?
+
+Answer: Because it makes the code clear and reliable. returning 0 is misleading since there is no way we get 0 by dividing any number by 0. And the function divide only deals on performing the calculation not managing how errors should be displayed. So, to make the function purpose specific.
+
+Q10. What does the async keyword on main() allow you to do? Could this assignment have been written without making main() async? Explain your answer.
+
+Answer: async makes the main() function asynchronous meaning it waits till the required delayed time has passed for performing the operations asked before continuing to the next block of code. If we remove async while there is await inside the main() function, it will give us an error saying "the await expression can only be used in an async function." However, if we don’t include both async and await in main() and its return type is void, then the program will run synchronously and the order of displayed result is the title first, then “All Calculations Completed!”, the errors will continue(for divide by 0) and finally the results of the operations will be displayed.
