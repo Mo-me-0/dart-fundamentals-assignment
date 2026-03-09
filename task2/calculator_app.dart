@@ -6,6 +6,7 @@ import "dart:async";
 class Calculator{
   final String name;
   static Duration duration = Duration(seconds: 1, milliseconds: 500); // a time of 1.5 seconds
+  List<String> historyLog = []; // a list to store a record of compiled calculations
   // this constractor automatically assignes the entered parameter to name.
   Calculator(this.name){}
   // for add, subtruct and multiply, they return after performing the approprate opperation
@@ -38,7 +39,7 @@ class Calculator{
         break;
       default:
         //gives an error if the operation doesn't exist
-        throw ArgumentError("Unknown operation: $operation."); 
+        throw UnknownOperation(operation); 
     }
     await Future.delayed(duration);// creates a delay of 1.5 seconds 
     return result;// gives the computed result if the operation exists
@@ -48,18 +49,71 @@ class Calculator{
     /*
       since there are some thrown errors in divide and computeAsync
       we catch the errors to display approprately
-     */
+    */
     try{
       final double result = await this.computeAsync(a, b, operation); // hold till the value is computed
       print("$operation($a, $b) = $result"); // display the result withthe method used
-    }catch(e){ // captures thrown errors from performing the computation in try
+      this.historyLog.add("$operation($a, $b) = $result"); // record in history log
+    } catch(e){ // captures thrown errors from performing the computation in try
       print("Error $e");// display the error
     }
   }
+  /* 
+    to display the results for chain computing operations
+    which is the same as displayResults except taking list of numbers
+  */
+  Future<void> displayChainedResults(List<double> numbers, String operation) async{
+    try {
+      final double result = await this.computeChained(numbers, operation);
+      print("$operation$numbers = $result");
+      this.historyLog.add("$operation$numbers = $result");
+    } catch (e){
+      print("Error $e");
+    }
+  }
+  // displays all past calculation
+  Future<void> printHistory() async{
+    await Future.delayed(duration); // waits 1.5 seconds
+    print("--- ${this.name} History Log ---"); // a title
+    // itterate through the list to display each log in a separate line
+    for (String history in this.historyLog){
+      print(history);
+    }
+    print("--------------------------------"); // to show the end of the log
+  }
+  //  applies the operation sequentially across all values in a given list
+  Future<double> computeChained(List<double> numbers, String operation) async{
+    double result;
+    switch (operation){
+      case "adding":
+        result = numbers.fold(0, (previous, element) => add(previous, element));
+        break;
+      case "multiplying":
+        result = numbers.fold(1, (previous, element) => multiply(previous, element));
+      default:
+        throw UnknownOperation(operation);
+    }
+    await Future.delayed(duration);
+    return result;
+  }
+}
+// custom exception class for wrong operations used
+class UnknownOperation implements Exception{
+  // we can't extend from Exception because it is an abstruct interface class
+  final String message; // the variable to hold  
+  UnknownOperation(this.message);
+  /*
+    to show we are overriding the parent's function we use "@override"
+    it is not required but it is great for readability
+  */
+  @override  
+  String toString() => "Unknown Operation: $message"; // shows the custom message we want
 }
 Future<void> main() async{
   final cal = Calculator("MyCalculator"); // create an instance(object) of Calculator
   print("--- ${cal.name} ---");
+  print("Case 1: Sequential execution");
+  final start1 = DateTime.now();
   await cal.displayResults(10, 4, "add");
   await cal.displayResults(10, 4, "subtract");
   await cal.displayResults(10, 4, "multiply");
@@ -67,5 +121,40 @@ Future<void> main() async{
   await cal.displayResults(15, 3, "divide");
   await cal.displayResults(10, 0, "divide");
   await cal.displayResults(10, 4, "square");
-  print("All Calculations Completed!");
+  await cal.displayChainedResults([1, 2, 3, 4], "adding");
+  await cal.displayChainedResults([1, 2, 3, 4], "multiplying");
+  await cal.displayChainedResults([1, 2, 3, 4], "dividing");
+  print("All Calculations Completed!\n");
+  await cal.printHistory(); 
+  final end1 = DateTime.now();
+  print("\nCase 2: Parallel execution");
+  final start2 = DateTime.now();
+  await Future.wait([
+    cal.displayResults(10, 4, "add"),
+    cal.displayResults(10, 4, "subtract"),
+    cal.displayResults(10, 4, "multiply"),
+    cal.displayResults(10, 4, "divide"),
+    cal.displayResults(15, 3, "divide"),
+    cal.displayResults(10, 0, "divide"),
+    cal.displayResults(10, 4, "square"),
+    cal.displayChainedResults([1, 2, 3, 4], "adding"),
+    cal.displayChainedResults([1, 2, 3, 4], "multiplying"),
+    cal.displayChainedResults([1, 2, 3, 4], "dividing"),
+    cal.printHistory()
+  ]);
+  final end2 = DateTime.now();
+  print("\nTime taken for sequential execution: ${end1.difference(start1)}");
+  print("Time taken for parallel execution: ${end2.difference(start2)}");
+  /**
+   * When awaiting each displayResult(), it took about 12 seconds and
+   * When using Future.await(), it took about 1.51 seconds
+   * This is because Future.await() is computing the operations parallely.
+   * Parallel computing is faster because all the operations are starts and
+   * runs at the same time so, the time it finishes is smaller.
+   * 
+   * To find the time it takes to perform each cases, I created a DateTime variable
+   * to store the time that operation starts and ends at the beginning and ending of 
+   * each sections respectively. Finally, finding the differences between the end and start 
+   * gave us the total time it takes to compute each cases.
+  */
 }
